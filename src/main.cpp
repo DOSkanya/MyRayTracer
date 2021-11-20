@@ -93,6 +93,7 @@ int main() {
 	}
 
 	delete [] pixel_color;
+	ok;
 	return 0;
 }
 
