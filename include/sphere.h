@@ -13,7 +13,7 @@ public:
 	}
 
 	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
-	virtual bool bounding_box() const override;
+	virtual bool bounding_box(b_box& output_box) const override;
 
 public:
 	Point4d center;
@@ -47,6 +47,6 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 	return true;
 }
 
-bool sphere::bounding_box() const {
-
+bool sphere::bounding_box(b_box& output_box) const {
+	return true;
 }

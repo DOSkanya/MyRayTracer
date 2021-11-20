@@ -33,10 +33,10 @@ inline bool b_box::hit(const ray& r, double t_min, double t_max) const {
 b_box surrounding_box(b_box& box0, b_box& box1) {
 	Point4d small(fmin(box0.minimum.x(), box1.minimum.x()),
 		fmin(box0.minimum.y(), box1.minimum.y()),
-		fmin(box0.minimum.z(), box1.minimum.z()));
+		fmin(box0.minimum.z(), box1.minimum.z()), 1.0);
 	Point4d big(fmax(box0.maximum.x(), box1.maximum.x()),
 		fmax(box0.maximum.y(), box1.maximum.y()),
-		fmax(box0.maximum.z(), box1.maximum.z()));
+		fmax(box0.maximum.z(), box1.maximum.z()), 1.0);
 
 	return b_box(small, big);
 }

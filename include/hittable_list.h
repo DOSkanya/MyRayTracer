@@ -5,7 +5,8 @@
 
 class hittable_list : public hittable {
 public:
-	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const;
+	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
+	virtual bool bounding_box(b_box& output_box) const override;
 	void add(shared_ptr<hittable> object) { objects.push_back(object); }
 public:
 	std::vector<shared_ptr<hittable>> objects;
@@ -25,4 +26,8 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
 	}
 	
 	return hit_anything;
+}
+
+bool hittable_list::bounding_box(b_box& output_box) const {
+	return true;
 }

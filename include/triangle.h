@@ -19,7 +19,7 @@ public:
 	}
 
 	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
-	//virtual bool bounding_box();
+	virtual bool bounding_box(b_box& output_box) const override;
 
 	Vector4d v[3];
 	Vector4d n[3];
@@ -78,4 +78,8 @@ std::tuple<double, double, double> triangle::isInTriangle(const Point4d& p) cons
 	auto gamma = ((m0 * m5) - (m4 * m3)) * denominator_inv;
 	auto alpha = 1 - beta - gamma;
 	return { alpha, beta, gamma }; 
+}
+
+bool triangle::bounding_box(b_box& output_box) const {
+	return true;
 }
