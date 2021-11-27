@@ -1,16 +1,22 @@
 #include <iostream>
+#include <thread>
 #include "myraytracer.h"
 #include "triangle.h"
 #include "sphere.h"
 #include "camera.h"
 #include "color.h"
 #include "hittable_list.h"
+#include "bvh_tree.h"
+#include "tile.h"
 
-const int screen_height = 200;
-const int screen_width = 200;
-const int samples_per_pixel = 50;
+std::mutex change;
 
-Color3d ray_color(const ray& r, hittable_list& world, int depth);
+const int screen_height = 400;
+const int screen_width = 400;
+const int samples_per_pixel = 100;
+const int max_depth = 50;
+
+Color3d ray_color(const ray& r, bvh_node& world, int depth);
 Color3d* pixel_color;
 
 int main() {
@@ -63,6 +69,8 @@ int main() {
 	shared_ptr<sphere> light = make_shared<sphere>(o, 50, make_shared<diffuse_light>(Color3d(2.0, 2.0, 2.0)));
 	world.add(light);
 
+	bvh_node root(world);
+
 	/*Camera parameter*/
 	Point4d lookfrom(250.0, 250.0, -250.0, 1.0);
 	Point4d lookat(250.0, 250.0, 1.0, 1.0);
@@ -73,17 +81,58 @@ int main() {
 
 	camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, focus_dist);
 	
-	Color3d color(0.0, 0.0, 0.0);
-	for (int i = 0; i < screen_height ; i++) {
-		for (int j = 0; j < screen_width; j++) {
-			color << 0.0, 0.0, 0.0;
-			for (int k = 0; k < samples_per_pixel; k++) {
-				auto u = (static_cast<double>(i) + random_double()) / static_cast<double>(screen_height);
-				auto v = (static_cast<double>(j) + random_double()) / static_cast<double>(screen_width);
-				ray r = cam.ray_generate(u, v);
-				color += ray_color(r, world, 50);
+	//Parallelize: Get threads that can be concurrently executed
+	int _threadNum = std::thread::hardware_concurrency();
+	tile::cores_left = _threadNum;
+
+	//Render
+	int tile_width = 0, tile_height = 0;
+	int tile_scale = 100;
+	std::vector<tile*> tile_array;
+	while (tile_width < screen_width && tile_height < screen_height) {
+		if (tile::cores_left > 0) {
+			if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) >= screen_height) {
+				tile* t = new tile(tile_width, screen_width, tile_height, screen_height, screen_width, screen_height);
+				tile_array.push_back(t);
+				t->render(root, cam, max_depth, samples_per_pixel);
+				tile_width = 0;
+				tile_height = tile_height + tile_scale;
 			}
-			pixel_color[(screen_height - i - 1) * screen_width + j] += color;
+			else if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) < screen_height) {
+				tile* t = new tile(tile_width, screen_width, tile_height, tile_height + tile_scale, screen_width, screen_height);
+				tile_array.push_back(t);
+				t->render(root, cam, max_depth, samples_per_pixel);
+				tile_width = 0;
+				tile_height = tile_height + tile_scale;
+			}
+			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) >= screen_height) {
+				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, screen_height, screen_width, screen_height);
+				tile_array.push_back(t);
+				t->render(root, cam, max_depth, samples_per_pixel);
+				tile_width = tile_width + tile_scale;
+			}
+			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) < screen_height) {
+				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, tile_height + tile_scale, screen_width, screen_height);
+				tile_array.push_back(t);
+				t->render(root, cam, max_depth, samples_per_pixel);
+				tile_width = tile_width + tile_scale;
+			}
+		}
+	}
+
+	bool rendering_fin = false;
+	while (!rendering_fin) {
+		if (tile::cores_left == _threadNum)
+			rendering_fin = true;
+	}
+
+	//Output
+	Color3d* pixel_color = new Color3d[screen_width * screen_height];
+	for (auto ti : tile_array) {
+		for (int j = ti->height_end - 1; j >= ti->height_begin; --j) {
+			for (int i = ti->width_begin; i < ti->width_end; i++) {
+				pixel_color[(screen_height - 1 - j) * screen_width + i] = ti->color_block[(j - ti->height_begin) * (ti->width_end - ti->width_begin) + (i - ti->width_begin)];
+			}
 		}
 	}
 
@@ -96,7 +145,7 @@ int main() {
 	return 0;
 }
 
-Color3d ray_color(const ray& r, hittable_list& world, int depth) {
+Color3d ray_color(const ray& r, bvh_node& world, int depth) {
 	hit_record rec;
 	scatter_record srec;
 

@@ -81,5 +81,14 @@ std::tuple<double, double, double> triangle::isInTriangle(const Point4d& p) cons
 }
 
 bool triangle::bounding_box(b_box& output_box) const {
+	auto x_min = fmin(v[0].x(), fmin(v[1].x(), v[2].x()));
+	auto y_min = fmin(v[0].y(), fmin(v[1].y(), v[2].y()));
+	auto z_min = fmin(v[0].z(), fmin(v[1].z(), v[2].z()));
+	auto x_max = fmax(v[0].x(), fmax(v[1].x(), v[2].x()));
+	auto y_max = fmax(v[0].y(), fmax(v[1].y(), v[2].y()));
+	auto z_max = fmax(v[0].z(), fmax(v[1].z(), v[2].z()));
+	
+	output_box.minimum = Point4d(x_min - 0.001, y_min - 0.001, z_min - 0.001, 1.0);
+	output_box.maximum = Point4d(x_max + 0.001, y_max + 0.001, z_max + 0.001, 1.0);
 	return true;
 }

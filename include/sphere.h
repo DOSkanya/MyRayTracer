@@ -5,7 +5,7 @@
 
 class sphere : public hittable{
 public:
-	sphere() {}
+	sphere() { radius = 0.0; }
 	sphere(Point4d p, double r, shared_ptr<material> mat) {
 		center = p;
 		radius = r;
@@ -48,5 +48,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 }
 
 bool sphere::bounding_box(b_box& output_box) const {
+	output_box.minimum = Point4d(center.x() - radius, center.y() - radius, center.z() - radius, 1.0);
+	output_box.maximum = Point4d(center.x() + radius, center.y() + radius, center.z() + radius, 1.0);
 	return true;
 }

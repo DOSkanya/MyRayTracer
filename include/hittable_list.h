@@ -29,5 +29,12 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
 }
 
 bool hittable_list::bounding_box(b_box& output_box) const {
+	b_box temp;
+	objects[0]->bounding_box(output_box);
+
+	for (const auto& object : objects) {
+		object->bounding_box(temp);
+		output_box = surrounding_box(output_box, temp);
+	}
 	return true;
 }
