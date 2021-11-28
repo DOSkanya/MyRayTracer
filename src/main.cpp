@@ -11,10 +11,9 @@
 
 std::mutex change;
 
-const int screen_height = 400;
-const int screen_width = 400;
-const int samples_per_pixel = 100;
-const int max_depth = 50;
+const int screen_height = 200;
+const int screen_width = 200;
+const int samples_per_pixel = 50;
 
 Color3d ray_color(const ray& r, bvh_node& world, int depth);
 Color3d* pixel_color;
@@ -94,27 +93,27 @@ int main() {
 			if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) >= screen_height) {
 				tile* t = new tile(tile_width, screen_width, tile_height, screen_height, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, max_depth, samples_per_pixel);
+				t->render(root, cam, samples_per_pixel);
 				tile_width = 0;
 				tile_height = tile_height + tile_scale;
 			}
 			else if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) < screen_height) {
 				tile* t = new tile(tile_width, screen_width, tile_height, tile_height + tile_scale, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, max_depth, samples_per_pixel);
+				t->render(root, cam, samples_per_pixel);
 				tile_width = 0;
 				tile_height = tile_height + tile_scale;
 			}
 			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) >= screen_height) {
 				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, screen_height, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, max_depth, samples_per_pixel);
+				t->render(root, cam, samples_per_pixel);
 				tile_width = tile_width + tile_scale;
 			}
 			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) < screen_height) {
 				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, tile_height + tile_scale, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, max_depth, samples_per_pixel);
+				t->render(root, cam, samples_per_pixel);
 				tile_width = tile_width + tile_scale;
 			}
 		}

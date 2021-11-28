@@ -8,9 +8,7 @@
 class material {
 public:
 	virtual bool scatter(const ray& r_in, const hit_record& hrec, scatter_record& srec) = 0;
-	virtual Color3d emitted(const hit_record& hrec) {
-		return Color3d(0.0, 0.0, 0.0);
-	}
+	virtual Color3d emitted(const hit_record& hrec) = 0;
 };
 
 class lambertian : public material {
@@ -25,6 +23,9 @@ public:
 		srec.scatter_ray.dir = hrec.n + random_in_unit_sphere();
 		srec.attenuation = albedo->value(hrec.tex.x(), hrec.tex.y());
 		return true;
+	}
+	virtual Color3d emitted(const hit_record& hrec) {
+		return Color3d(0.0, 0.0, 0.0);
 	}
 public:
 	shared_ptr<texture> albedo; 
@@ -44,7 +45,7 @@ public:
 		if (hrec.front_face)
 			return emit->value(hrec.tex.x(), hrec.tex.y());
 		else
-			return Color3d(0, 0, 0);
+			return Color3d(0.0, 0.0, 0.0);
 	}
 
 private:

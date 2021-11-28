@@ -9,19 +9,22 @@
 
 extern std::mutex change;
 
-Color3d ray_color(const ray& r, const bvh_node& world, int depth) {
+Color3d ray_color(const ray& r, const bvh_node& world) {
+	double RR = 0.98;
+	double random_number = random_double();
+	if (random_number > RR) return Color3d(0.0, 0.0, 0.0);
+
 	hit_record rec;
 	scatter_record srec;
 
-	if (depth <= 0) return Color3d(0.0, 0.0, 0.0);
 	if (!world.hit(r, 0.001, infinity, rec)) return Color3d(0.0, 0.0, 0.0);
 
 	Color3d emitted = rec.mat_ptr->emitted(rec);
 	if (!rec.mat_ptr->scatter(r, rec, srec))
-		return emitted;
+		return emitted / RR;
 
 	rec.mat_ptr->scatter(r, rec, srec);//Compute the scatter ray then stored in srec
-	return emitted + srec.attenuation.cwiseProduct(ray_color(srec.scatter_ray, world, depth - 1));
+	return emitted + srec.attenuation.cwiseProduct(ray_color(srec.scatter_ray, world) * rec.n.dot(srec.scatter_ray.dir.normalized())) / RR;
 }
 
 class tile {
@@ -36,7 +39,7 @@ public:
 		color_block = new Color3d[(width_end - width_begin) * (height_end - height_begin)];
 	}
 
-	void render(bvh_node& bvh, camera& cam, int max_depth, int samples_per_pixel);
+	void render(bvh_node& bvh, camera& cam, int samples_per_pixel);
 public:
 	static int cores_left;
 	int image_width;
@@ -50,7 +53,7 @@ public:
 
 int tile::cores_left;
 
-void thread_function(tile& t, bvh_node& bvh, camera& cam, int max_depth, int samples_per_pixel) {
+void thread_function(tile& t, bvh_node& bvh, camera& cam, int samples_per_pixel) {
 	for (int j = t.height_end - 1; j >= t.height_begin; --j) {
 		//std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for (int i = t.width_begin; i < t.width_end; ++i) {
@@ -59,7 +62,7 @@ void thread_function(tile& t, bvh_node& bvh, camera& cam, int max_depth, int sam
 				auto u = (i + random_double()) / (t.image_width - 1);
 				auto v = (j + random_double()) / (t.image_height - 1);
 				ray r = cam.ray_generate(u, v);
-				pixel_color += ray_color(r, bvh, max_depth);
+				pixel_color += ray_color(r, bvh);
 			}
 			t.color_block[(j - t.height_begin) * (t.width_end - t.width_begin) + (i - t.width_begin)] = pixel_color;
 		}
@@ -71,11 +74,11 @@ void thread_function(tile& t, bvh_node& bvh, camera& cam, int max_depth, int sam
 	//std::cerr << "thread has quit.\n";
 }
 
-void tile::render(bvh_node& bvh, camera& cam, int max_depth, int samples_per_pixel) {
+void tile::render(bvh_node& bvh, camera& cam, int samples_per_pixel) {
 	//std::cerr << "tile has been created." << std::endl;
 	change.lock();
 	cores_left = cores_left - 1;
-	std::thread rendering(thread_function, std::ref(*this), std::ref(bvh), std::ref(cam), max_depth, samples_per_pixel);
+	std::thread rendering(thread_function, std::ref(*this), std::ref(bvh), std::ref(cam), samples_per_pixel);
 	rendering.detach();
 	change.unlock();
 }
