@@ -23,8 +23,8 @@ Color3d ray_color(const ray& r, const bvh_node& world) {
 	if (!rec.mat_ptr->scatter(r, rec, srec))
 		return emitted / RR;
 
-	rec.mat_ptr->scatter(r, rec, srec);//Compute the scatter ray then stored in srec
-	return emitted + srec.attenuation.cwiseProduct(ray_color(srec.scatter_ray, world) * rec.n.dot(srec.scatter_ray.dir.normalized())) / RR;
+	ray scatter_ray = ray(rec.p, srec.pdf_ptr->generate());
+	return emitted + srec.attenuation.cwiseProduct(ray_color(scatter_ray, world) * rec.n.dot(scatter_ray.dir.normalized())) / RR;
 }
 
 class tile {

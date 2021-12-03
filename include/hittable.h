@@ -2,6 +2,7 @@
 #include "myraytracer.h"
 #include "ray.h"
 #include "bounding_box.h"
+#include "pdf.h"
 
 class material;
 
@@ -20,8 +21,8 @@ struct hit_record {
 };
 
 struct scatter_record {
-	ray scatter_ray;
 	Color3d attenuation;
+	shared_ptr<pdf> pdf_ptr;
 };
 
 class hittable {

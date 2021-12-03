@@ -71,7 +71,58 @@ std::tuple<double, double, double> triangle::isInTriangle(const Point4d& p) cons
 	auto m5 = p.y() - v[0].y();
 
 	auto denominator = (m0 * m1) - (m2 * m3);
-	if (denominator == 0) return { 1.0, 0.0, 0.0 };
+	if (denominator == 0) {//算法是从rasterizer那里搬过来的，只考虑了二维的情况。
+		//当三角形在xy平面上的投影不是一个三角形的时候这个方法就失效了
+		//即有两个顶点出现在一条垂直于xy平面的直线上
+		//可以考虑换一个面投影，重新运用该算法
+		if (v[0].x() == v[1].x() && v[0].x() == v[2].x()) {//三角形在yz平面上
+			auto mm0 = m3;//mm0 = v[1].y() - v[0].y()
+			auto mm1 = v[2].z() - v[0].z();
+			auto mm2 = m1;//mm2 = v[2].y() - v[0].y()
+			auto mm3 = v[1].z() - v[0].z();
+			auto mm4 = m5;//mm4 = p.y() - v[0].y()
+			auto mm5 = p.z() - v[0].z();
+			//此时denominator已经不可能为0
+			denominator = (mm0 * mm1) - (mm2 * mm3);
+			auto denominator_inv = 1.0 / denominator;
+			auto beta = ((mm4 * mm1) - (mm2 * mm5)) * denominator_inv;
+			auto gamma = ((mm0 * mm5) - (mm4 * mm3)) * denominator_inv;
+			auto alpha = 1 - beta - gamma;
+			return { alpha, beta, gamma };
+		}
+		else if (v[0].y() == v[1].y() && v[0].y() == v[2].y()) {//三角形在xz平面上
+			auto mm0 = m0;//mm0 = v[1].x() - v[0].x()
+			auto mm1 = v[2].z() - v[0].z();
+			auto mm2 = m2;//mm2 = v[2].x() - v[0].x()
+			auto mm3 = v[1].z() - v[0].z();
+			auto mm4 = m4;//mm4 = p.x() - v[0].x()
+			auto mm5 = p.z() - v[0].z();
+			//此时denominator已经不可能为0
+			denominator = (mm0 * mm1) - (mm2 * mm3);
+			auto denominator_inv = 1.0 / denominator;
+			auto beta = ((mm4 * mm1) - (mm2 * mm5)) * denominator_inv;
+			auto gamma = ((mm0 * mm5) - (mm4 * mm3)) * denominator_inv;
+			auto alpha = 1 - beta - gamma;
+			return { alpha, beta, gamma };
+		}
+		else {//只是有两个顶点在垂直于xy平面的直线上
+			//可以将其投影到yz平面或xz平面
+			//这里选择将其投影到yz平面
+			auto mm0 = m3;//mm0 = v[1].y() - v[0].y()
+			auto mm1 = v[2].z() - v[0].z();
+			auto mm2 = m1;//mm2 = v[2].y() - v[0].y()
+			auto mm3 = v[1].z() - v[0].z();
+			auto mm4 = p.y() - v[0].y();
+			auto mm5 = p.z() - v[0].z();
+			//此时denominator已经不可能为0
+			denominator = (mm0 * mm1) - (mm2 * mm3);
+			auto denominator_inv = 1.0 / denominator;
+			auto beta = ((mm4 * mm1) - (mm2 * mm5)) * denominator_inv;
+			auto gamma = ((mm0 * mm5) - (mm4 * mm3)) * denominator_inv;
+			auto alpha = 1 - beta - gamma;
+			return { alpha, beta, gamma };
+		}
+	}
 
 	auto denominator_inv = 1.0 / denominator;
 	auto beta = ((m4 * m1) - (m2 * m5)) * denominator_inv;

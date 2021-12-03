@@ -11,8 +11,8 @@ public:
 	}
 
 	void build_from_vector(Vector4d base);
-	Vector4d local(const Vector4d& a);
-	Vector4d local(double x, double y, double z);
+	Vector4d local(const Vector4d& a) const;
+	Vector4d local(double x, double y, double z) const;
 private:
 	Vector4d u, v, w;
 };
@@ -24,10 +24,10 @@ void ortho::build_from_vector(Vector4d base) {
 	u = cross(v, w);
 }
 
-Vector4d ortho::local(const Vector4d& a) {
+Vector4d ortho::local(const Vector4d& a) const {
 	return a.x() * u + a.y() * v + a.z() * w;
 }
 
-Vector4d ortho::local(double x, double y, double z) {
+Vector4d ortho::local(double x, double y, double z) const {
 	return x * u + y * v + z * w;
 }

@@ -17,10 +17,7 @@ public:
 	lambertian(shared_ptr<solid_color> a) : albedo(a) {}
 
 	virtual bool scatter(const ray& r_in, const hit_record& hrec, scatter_record& srec) {
-		srec.scatter_ray.orig = hrec.p;
-		ortho coord;
-		coord.build_from_vector(hrec.n);
-		srec.scatter_ray.dir = hrec.n + random_in_unit_sphere();
+		srec.pdf_ptr = make_shared<uniform_pdf>(hrec.n);
 		srec.attenuation = albedo->value(hrec.tex.x(), hrec.tex.y());
 		return true;
 	}
@@ -41,11 +38,11 @@ public:
 		return false;
 	}
 
-	Color3d emitted(const hit_record& hrec) {
-		if (hrec.front_face)
-			return emit->value(hrec.tex.x(), hrec.tex.y());
-		else
-			return Color3d(0.0, 0.0, 0.0);
+	virtual Color3d emitted(const hit_record& hrec) {
+		//if (hrec.front_face)
+		return emit->value(hrec.tex.x(), hrec.tex.y());
+		//else
+			//return Color3d(0.0, 0.0, 0.0);
 	}
 
 private:
