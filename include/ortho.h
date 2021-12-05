@@ -10,6 +10,9 @@ public:
 		w = ww;
 	}
 
+	Vector4d uu() const { return u; }
+	Vector4d vv() const { return v; }
+	Vector4d ww() const { return w; }
 	void build_from_vector(Vector4d base);
 	Vector4d local(const Vector4d& a) const;
 	Vector4d local(double x, double y, double z) const;

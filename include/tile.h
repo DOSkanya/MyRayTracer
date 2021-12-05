@@ -24,7 +24,9 @@ Color3d ray_color(const ray& r, const bvh_node& world) {
 		return emitted / RR;
 
 	ray scatter_ray = ray(rec.p, srec.pdf_ptr->generate());
-	return emitted + srec.attenuation.cwiseProduct(ray_color(scatter_ray, world) * rec.n.dot(scatter_ray.dir.normalized())) / RR;
+	return emitted + 
+		srec.attenuation.cwiseProduct(ray_color(scatter_ray, world)) * rec.n.dot(scatter_ray.dir.normalized()) * rec.mat_ptr->scattering_pdf(r, rec, scatter_ray)
+		/ (RR * srec.pdf_ptr->value(scatter_ray.dir));
 }
 
 class tile {

@@ -13,7 +13,7 @@ std::mutex change;
 
 const int screen_height = 200;
 const int screen_width = 200;
-const int samples_per_pixel = 100;
+const int samples_per_pixel = 200;
 
 Color3d* pixel_color;
 Color3d ray_color(const ray& r, const bvh_node& world);

@@ -36,3 +36,30 @@ Vector4d uniform_pdf::generate() const {
 	auto z = sin(2 * pi * xi_2) * sqrt_value;
 	return uvw.local(x, y, z);
 }
+ 
+class cosine_pdf : public pdf {
+public:
+	cosine_pdf(const Vector4d& normal) {
+		uvw.build_from_vector(normal);
+	}
+	virtual double value(const Vector4d& direction) const override;
+	virtual Vector4d generate() const override;
+public:
+	ortho uvw;
+};
+
+double cosine_pdf::value(const Vector4d& direction) const {
+	auto cosine = uvw.vv().dot(direction.normalized());
+	return cosine <= 0 ? 0 : cosine / pi;
+}
+
+Vector4d cosine_pdf::generate() const {
+	//改良版的cosine采样
+	auto xi_1 = random_double();
+	auto xi_2 = random_double();
+
+	auto x = cos(2 * pi * xi_2) * sqrt(xi_1);
+	auto y = sqrt(1 - xi_1);
+	auto z = sin(2 * pi * xi_2) * sqrt(xi_1);
+	return uvw.local(x, y, z);
+}
