@@ -74,6 +74,10 @@ int main() {
 	world.add(t10);
 	world.add(t11);
 
+	std::vector<shared_ptr<hittable>> lightsource;
+	lightsource.push_back(t10);
+	lightsource.push_back(t11);
+
 	/*
 	Point4d o;
 	o << 250.0, 250.0, 250.0, 1.0;
@@ -100,34 +104,34 @@ int main() {
 
 	//Render
 	int tile_width = 0, tile_height = 0;
-	int tile_scale = 100;
+	int tile_scale = 50;
 	std::vector<tile*> tile_array;
 	while (tile_width < screen_width && tile_height < screen_height) {
 		if (tile::cores_left > 0) {
 			if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) >= screen_height) {
 				tile* t = new tile(tile_width, screen_width, tile_height, screen_height, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, samples_per_pixel);
+				t->render(root, cam, lightsource, samples_per_pixel);
 				tile_width = 0;
 				tile_height = tile_height + tile_scale;
 			}
 			else if ((tile_width + tile_scale) >= screen_width && (tile_height + tile_scale) < screen_height) {
 				tile* t = new tile(tile_width, screen_width, tile_height, tile_height + tile_scale, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, samples_per_pixel);
+				t->render(root, cam, lightsource, samples_per_pixel);
 				tile_width = 0;
 				tile_height = tile_height + tile_scale;
 			}
 			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) >= screen_height) {
 				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, screen_height, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, samples_per_pixel);
+				t->render(root, cam, lightsource, samples_per_pixel);
 				tile_width = tile_width + tile_scale;
 			}
 			else if ((tile_width + tile_scale) < screen_width && (tile_height + tile_scale) < screen_height) {
 				tile* t = new tile(tile_width, tile_width + tile_scale, tile_height, tile_height + tile_scale, screen_width, screen_height);
 				tile_array.push_back(t);
-				t->render(root, cam, samples_per_pixel);
+				t->render(root, cam, lightsource, samples_per_pixel);
 				tile_width = tile_width + tile_scale;
 			}
 		}

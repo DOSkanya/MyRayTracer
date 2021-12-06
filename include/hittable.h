@@ -2,7 +2,8 @@
 #include "myraytracer.h"
 #include "ray.h"
 #include "bounding_box.h"
-#include "pdf.h"
+
+class pdf;
 
 class material;
 
@@ -29,4 +30,10 @@ class hittable {
 public:
 	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
 	virtual bool bounding_box(b_box& output_box) const = 0;
+	virtual double pdf_value(const Point4d& o, const Vector4d& v) {
+		return 0;
+	}
+	virtual Vector4d generate_direction(const Point4d& o) {
+		return Vector4d(1, 0, 0, 0);
+	}
 };

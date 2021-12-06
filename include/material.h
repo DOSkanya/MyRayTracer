@@ -4,6 +4,7 @@
 #include "texture.h"
 #include "hittable.h"
 #include "ortho.h"
+#include "pdf.h"
 
 class material {
 public:

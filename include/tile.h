@@ -9,7 +9,7 @@
 
 extern std::mutex change;
 
-Color3d ray_color(const ray& r, const bvh_node& world) {
+Color3d ray_color(const ray& r, const bvh_node& world, const std::vector<shared_ptr<hittable>>& lightsource) {
 	double RR = 0.98;
 	double random_number = random_double();
 	if (random_number > RR) return Color3d(0.0, 0.0, 0.0);
@@ -23,10 +23,14 @@ Color3d ray_color(const ray& r, const bvh_node& world) {
 	if (!rec.mat_ptr->scatter(r, rec, srec))
 		return emitted / RR;
 
-	ray scatter_ray = ray(rec.p, srec.pdf_ptr->generate());
+	auto light0 = make_shared<hittable_pdf>(rec.p, lightsource[0]);
+	auto light1 = make_shared<hittable_pdf>(rec.p, lightsource[1]);
+	mixture_pdf m_pdf(srec.pdf_ptr, light0, light1);
+
+	ray scatter_ray = ray(rec.p, m_pdf.generate());
 	return emitted + 
-		srec.attenuation.cwiseProduct(ray_color(scatter_ray, world)) * rec.n.dot(scatter_ray.dir.normalized()) * rec.mat_ptr->scattering_pdf(r, rec, scatter_ray)
-		/ (RR * srec.pdf_ptr->value(scatter_ray.dir));
+		srec.attenuation.cwiseProduct(ray_color(scatter_ray, world, lightsource)) * rec.n.dot(scatter_ray.dir.normalized()) * rec.mat_ptr->scattering_pdf(r, rec, scatter_ray)
+		/ (RR * m_pdf.value(scatter_ray.dir));
 }
 
 class tile {
@@ -41,7 +45,7 @@ public:
 		color_block = new Color3d[(width_end - width_begin) * (height_end - height_begin)];
 	}
 
-	void render(bvh_node& bvh, camera& cam, int samples_per_pixel);
+	void render(bvh_node& bvh, camera& cam, std::vector<shared_ptr<hittable>>& lightsource, int samples_per_pixel);
 public:
 	static int cores_left;
 	int image_width;
@@ -55,7 +59,7 @@ public:
 
 int tile::cores_left;
 
-void thread_function(tile& t, bvh_node& bvh, camera& cam, int samples_per_pixel) {
+void thread_function(tile& t, bvh_node& bvh, camera& cam, std::vector<shared_ptr<hittable>>& lightsource, int samples_per_pixel) {
 	for (int j = t.height_end - 1; j >= t.height_begin; --j) {
 		//std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for (int i = t.width_begin; i < t.width_end; ++i) {
@@ -64,7 +68,7 @@ void thread_function(tile& t, bvh_node& bvh, camera& cam, int samples_per_pixel)
 				auto u = (i + random_double()) / (t.image_width - 1);
 				auto v = (j + random_double()) / (t.image_height - 1);
 				ray r = cam.ray_generate(u, v);
-				pixel_color += ray_color(r, bvh);
+				pixel_color += ray_color(r, bvh, lightsource);
 			}
 			t.color_block[(j - t.height_begin) * (t.width_end - t.width_begin) + (i - t.width_begin)] = pixel_color;
 		}
@@ -76,11 +80,11 @@ void thread_function(tile& t, bvh_node& bvh, camera& cam, int samples_per_pixel)
 	//std::cerr << "thread has quit.\n";
 }
 
-void tile::render(bvh_node& bvh, camera& cam, int samples_per_pixel) {
+void tile::render(bvh_node& bvh, camera& cam, std::vector<shared_ptr<hittable>>& lightsource, int samples_per_pixel) {
 	//std::cerr << "tile has been created." << std::endl;
 	change.lock();
 	cores_left = cores_left - 1;
-	std::thread rendering(thread_function, std::ref(*this), std::ref(bvh), std::ref(cam), samples_per_pixel);
+	std::thread rendering(thread_function, std::ref(*this), std::ref(bvh), std::ref(cam), std::ref(lightsource), samples_per_pixel);
 	rendering.detach();
 	change.unlock();
 }

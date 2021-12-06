@@ -20,6 +20,8 @@ public:
 
 	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
 	virtual bool bounding_box(b_box& output_box) const override;
+	virtual double pdf_value(const Point4d& o, const Vector4d& v);
+	virtual Vector4d generate_direction(const Point4d& o);
 
 	Vector4d v[3];
 	Vector4d n[3];
@@ -142,4 +144,28 @@ bool triangle::bounding_box(b_box& output_box) const {
 	output_box.minimum = Point4d(x_min - 0.001, y_min - 0.001, z_min - 0.001, 1.0);
 	output_box.maximum = Point4d(x_max + 0.001, y_max + 0.001, z_max + 0.001, 1.0);
 	return true;
+}
+
+inline double triangle::pdf_value(const Point4d& o, const Vector4d& dir) {
+	ray r(o, dir); hit_record rec;
+	if (!hit(r, 0.001, infinity, rec)) return 0;
+	else {
+		auto e0 = v[1] - v[0];
+		auto e1 = v[2] - v[0];
+		auto vec = cross(e0, e1);
+		auto area = sqrt(vec.dot(vec)) / 2.0;
+		auto cosine = rec.n.dot(-dir);
+		auto distance_sq = (rec.p - o).dot(rec.p - o);
+		auto value = distance_sq / (area * cosine);
+		if (value < 1 / (2 * pi)) return 1 / (2 * pi);
+		else return value;
+	}
+}
+
+inline Vector4d triangle::generate_direction(const Point4d& o) {
+	auto xi_1 = random_double();
+	auto xi_2 = random_double();
+	Point4d p = (1 - sqrt(xi_1)) * v[0] + (sqrt(xi_1) * (1 - xi_2)) * v[1] + sqrt(xi_1) * xi_2 * v[2];
+	auto dir = p - o;
+	return dir.normalized();
 }
