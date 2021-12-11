@@ -50,14 +50,11 @@ int main() {
 		t->set_vertex(v_1, v_2, v_3);
 		t->set_normal(n_1, n_2, n_3);
 		t->set_texcord(t_1, t_2, t_3);
-		t->mat_ptr = yellow;
+		t->mat_ptr = white;
 		obj_model.add(t);
 	}
 	//由于标准化空间是从-1到1，跨度为2，所以正确的缩放参数是想要缩放比例的二分之一
-	obj_model.apply_transformation(50, Vector3d(50.0 + 100.0, 50.0 + 0.0, 50.0 + 100.0));
-
-
-
+	obj_model.apply_transformation(50, 180, Vector3d(50.0 + 100.0, 50.0 + 0.0, 50.0 + 100.0));
 
 	shared_ptr<bvh_node> model = make_shared<bvh_node>(obj_model);
 
