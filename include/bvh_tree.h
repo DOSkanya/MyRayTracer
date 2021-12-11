@@ -42,6 +42,8 @@ public:
 	b_box box;
 };
 
+typedef bvh_node Model;
+
 bvh_node::bvh_node(const std::vector<shared_ptr<hittable>>& src_objects, size_t start, size_t end) {
 	auto objects = src_objects;
 

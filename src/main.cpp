@@ -8,20 +8,58 @@
 #include "hittable_list.h"
 #include "bvh_tree.h"
 #include "tile.h"
+#include "OBJ_Loader.h"
 
 std::mutex change;
 
 const int screen_height = 200;
 const int screen_width = 200;
-const int samples_per_pixel = 200;
+const int samples_per_pixel = 100;
 
 Color3d* pixel_color;
-Color3d ray_color(const ray& r, const bvh_node& world);
+//Color3d ray_color(const ray& r, const bvh_node& world);
 
 int main() {
 	pixel_color = new Color3d[screen_height * screen_width];
 	for (int h = 0; h < screen_width * screen_height; h++)
 		pixel_color[h] = Color3d(0.0, 0.0, 0.0);
+
+	auto red = make_shared<lambertian>(Color3d(.65, .05, .05));
+	auto green = make_shared<lambertian>(Color3d(.12, .45, .15));
+	auto white = make_shared<lambertian>(Color3d(.73, .73, .73));
+	auto light = make_shared<diffuse_light>(Color3d(20, 20, 20));
+	auto yellow = make_shared<diffuse_light>(Color3d(.45, .45, .10));
+
+	objl::Loader loader;
+	loader.LoadFile("resource/african_head/african_head.obj");
+	hittable_list obj_model;
+	for (int i = 0; i < loader.LoadedVertices.size(); i += 3) {
+		Point4d v_1, v_2, v_3;
+		Vector4d n_1, n_2, n_3;
+		Texture2d t_1, t_2, t_3;
+		v_1 << loader.LoadedVertices[i].Position.X, loader.LoadedVertices[i].Position.Y, loader.LoadedVertices[i].Position.Z, 1.0;
+		v_2 << loader.LoadedVertices[i + 1].Position.X, loader.LoadedVertices[i + 1].Position.Y, loader.LoadedVertices[i + 1].Position.Z, 1.0;
+		v_3 << loader.LoadedVertices[i + 2].Position.X, loader.LoadedVertices[i + 2].Position.Y, loader.LoadedVertices[i + 2].Position.Z, 1.0;
+		n_1 << loader.LoadedVertices[i].Normal.X, loader.LoadedVertices[i].Normal.Y, loader.LoadedVertices[i].Normal.Z, 0.0;
+		n_2 << loader.LoadedVertices[i + 1].Normal.X, loader.LoadedVertices[i + 1].Normal.Y, loader.LoadedVertices[i + 1].Normal.Z, 0.0;
+		n_3 << loader.LoadedVertices[i + 2].Normal.X, loader.LoadedVertices[i + 2].Normal.Y, loader.LoadedVertices[i + 2].Normal.Z, 0.0;
+		t_1 << loader.LoadedVertices[i].TextureCoordinate.X, loader.LoadedVertices[i].TextureCoordinate.Y;
+		t_2 << loader.LoadedVertices[i + 1].TextureCoordinate.X, loader.LoadedVertices[i + 1].TextureCoordinate.Y;
+		t_3 << loader.LoadedVertices[i + 2].TextureCoordinate.X, loader.LoadedVertices[i + 2].TextureCoordinate.Y;
+		shared_ptr<triangle> t = make_shared<triangle>();
+		t->set_vertex(v_1, v_2, v_3);
+		t->set_normal(n_1, n_2, n_3);
+		t->set_texcord(t_1, t_2, t_3);
+		t->mat_ptr = yellow;
+		obj_model.add(t);
+	}
+	//由于标准化空间是从-1到1，跨度为2，所以正确的缩放参数是想要缩放比例的二分之一
+	obj_model.apply_transformation(50, Vector3d(50.0 + 100.0, 50.0 + 0.0, 50.0 + 100.0));
+
+
+
+
+	shared_ptr<bvh_node> model = make_shared<bvh_node>(obj_model);
 
 	Point4d v0, v1, v2, v3, v4, v5, v6, v7;
 	v0 << 0.0, 0.0, 0.0, 1.0;
@@ -32,10 +70,6 @@ int main() {
 	v5 << 500.0, 0.0, 500.0, 1.0;
 	v6 << 0.0, 500.0, 500.0, 1.0;
 	v7 << 500.0, 500.0, 500.0, 1.0;
-	auto red = make_shared<lambertian>(Color3d(.65, .05, .05));
-	auto green = make_shared<lambertian>(Color3d(.12, .45, .15));
-	auto white = make_shared<lambertian>(Color3d(.73, .73, .73));
-	auto light = make_shared<diffuse_light>(Color3d(20, 20, 20));
 	//left wall
 	shared_ptr<triangle> t0 = make_shared<triangle>(v0, v2, v4, green);
 	shared_ptr<triangle> t1 = make_shared<triangle>(v2, v4, v6, green);
@@ -73,6 +107,7 @@ int main() {
 	world.add(t9);
 	world.add(t10);
 	world.add(t11);
+	world.add(model);
 
 	std::vector<shared_ptr<hittable>> lightsource;
 	lightsource.push_back(t10);

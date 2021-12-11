@@ -36,4 +36,5 @@ public:
 	virtual Vector4d generate_direction(const Point4d& o) {
 		return Vector4d(1, 0, 0, 0);
 	}
+	virtual void apply_transformation(Eigen::Matrix4d& matrix) {}
 };

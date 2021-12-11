@@ -7,7 +7,7 @@
 class triangle : public hittable{
 public:
 	triangle() {}
-	triangle(Vector4d v0, Vector4d v1, Vector4d v2, shared_ptr<material> mat) {
+	triangle(Point4d v0, Point4d v1, Point4d v2, shared_ptr<material> mat) {
 		v[0] = v0;
 		v[1] = v1;
 		v[2] = v2;
@@ -23,6 +23,25 @@ public:
 	virtual double pdf_value(const Point4d& o, const Vector4d& v);
 	virtual Vector4d generate_direction(const Point4d& o);
 
+	void set_vertex(Point4d v0, Point4d v1, Point4d v2) {
+		v[0] = v0; v[1] = v1; v[2] = v2;
+	}
+	void set_normal(Vector4d n0, Vector4d n1, Vector4d n2) {
+		n[0] = n0; n[1] = n1; n[2] = n2;
+	}
+	void set_texcord(Texture2d t0, Texture2d t1, Texture2d t2) {
+		tex[0] = t0; tex[1] = t1; tex[2] = t2;
+	}
+	void set_material(shared_ptr<material> mat) {
+		mat_ptr = mat;
+	}
+
+	virtual void apply_transformation(Eigen::Matrix4d& matrix) {
+		v[0] = matrix * v[0];
+		v[1] = matrix * v[1];
+		v[2] = matrix * v[2];
+	}
+public:
 	Vector4d v[3];
 	Vector4d n[3];
 	Texture2d tex[3];

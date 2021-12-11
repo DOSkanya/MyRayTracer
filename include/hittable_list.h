@@ -8,6 +8,8 @@ public:
 	virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
 	virtual bool bounding_box(b_box& output_box) const override;
 	void add(shared_ptr<hittable> object) { objects.push_back(object); }
+	void apply_transformation(double scale, Vector3d translate);
+
 public:
 	std::vector<shared_ptr<hittable>> objects;
 };
@@ -37,4 +39,24 @@ bool hittable_list::bounding_box(b_box& output_box) const {
 		output_box = surrounding_box(output_box, temp);
 	}
 	return true;
+}
+
+void hittable_list::apply_transformation(double scale, Vector3d translate) {
+	Eigen::Matrix4d scale_matrix, rotate_matrix, translate_matrix, matrix;
+	scale_matrix << scale, 0.0, 0.0, 0.0,
+		0.0, scale, 0.0, 0.0,
+		0.0, 0.0, scale, 0.0,
+		0.0, 0.0, 0.0, 1.0;
+	rotate_matrix << 1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0;
+	translate_matrix << 1.0, 0.0, 0.0, translate.x(),
+		0.0, 1.0, 0.0, translate.y(),
+		0.0, 0.0, 1.0, translate.z(),
+		0.0, 0.0, 0.0, 1.0;
+	matrix = translate_matrix * rotate_matrix * scale_matrix;
+	for (auto& item : objects) {
+		item->apply_transformation(matrix);
+	}
 }
