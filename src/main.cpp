@@ -12,9 +12,9 @@
 
 std::mutex change;
 
-const int screen_height = 200;
-const int screen_width = 200;
-const int samples_per_pixel = 100;
+const int screen_height = 800;
+const int screen_width = 800;
+const int samples_per_pixel = 500;
 
 Color3d* pixel_color;
 //Color3d ray_color(const ray& r, const bvh_node& world);
@@ -28,7 +28,7 @@ int main() {
 	auto green = make_shared<lambertian>(Color3d(.12, .45, .15));
 	auto white = make_shared<lambertian>(Color3d(.73, .73, .73));
 	auto light = make_shared<diffuse_light>(Color3d(20, 20, 20));
-	auto yellow = make_shared<diffuse_light>(Color3d(.45, .45, .10));
+	auto yellow = make_shared<lambertian>(Color3d(.45, .45, .10));
 
 	objl::Loader loader;
 	loader.LoadFile("resource/african_head/african_head.obj");
@@ -54,7 +54,7 @@ int main() {
 		obj_model.add(t);
 	}
 	//由于标准化空间是从-1到1，跨度为2，所以正确的缩放参数是想要缩放比例的二分之一
-	obj_model.apply_transformation(50, 180, Vector3d(50.0 + 100.0, 50.0 + 0.0, 50.0 + 100.0));
+	obj_model.apply_transformation(140.0, 180.0, Vector3d(140.0 + 50.0, 140.0 + 0.0, 140.0 + 170.0));
 
 	shared_ptr<bvh_node> model = make_shared<bvh_node>(obj_model);
 
@@ -82,14 +82,17 @@ int main() {
 	//inner wall
 	shared_ptr<triangle> t8 = make_shared<triangle>(v4, v5, v6, white);
 	shared_ptr<triangle> t9 = make_shared<triangle>(v5, v6, v7, white);
+	//outer wall
+	//shared_ptr<triangle> t10 = make_shared<triangle>(v0, v1, v2, white);
+	//shared_ptr<triangle> t11 = make_shared<triangle>(v1, v2, v3, white);
 	//light
 	Point4d v8, v9, v10, v11;
 	v8 << 200.0, 499.0, 200.0, 1.0;
 	v9 << 200.0, 499.0, 300.0, 1.0;
 	v10 << 300.0, 499.0, 200.0, 1.0;
 	v11 << 300.0, 499.0, 300.0, 1.0;
-	shared_ptr<triangle> t10 = make_shared<triangle>(v8, v9, v10, light);
-	shared_ptr<triangle> t11 = make_shared<triangle>(v9, v10, v11, light);
+	shared_ptr<triangle> t12 = make_shared<triangle>(v8, v9, v10, light);
+	shared_ptr<triangle> t13 = make_shared<triangle>(v9, v10, v11, light);
 
 	hittable_list world;
 	world.add(t0);
@@ -102,13 +105,15 @@ int main() {
 	world.add(t7);
 	world.add(t8);
 	world.add(t9);
-	world.add(t10);
-	world.add(t11);
+	//world.add(t10);
+	//world.add(t11);
+	world.add(t12);
+	world.add(t13);
 	world.add(model);
 
 	std::vector<shared_ptr<hittable>> lightsource;
-	lightsource.push_back(t10);
-	lightsource.push_back(t11);
+	lightsource.push_back(t12);
+	lightsource.push_back(t13);
 
 	/*
 	Point4d o;
