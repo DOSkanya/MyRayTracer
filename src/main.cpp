@@ -12,9 +12,9 @@
 
 std::mutex change;
 
-const int screen_height = 800;
-const int screen_width = 800;
-const int samples_per_pixel = 500;
+const int screen_height = 200;
+const int screen_width = 200;
+const int samples_per_pixel = 100;
 
 Color3d* pixel_color;
 //Color3d ray_color(const ray& r, const bvh_node& world);
@@ -27,7 +27,7 @@ int main() {
 	auto red = make_shared<lambertian>(Color3d(.65, .05, .05));
 	auto green = make_shared<lambertian>(Color3d(.12, .45, .15));
 	auto white = make_shared<lambertian>(Color3d(.73, .73, .73));
-	auto light = make_shared<diffuse_light>(Color3d(20, 20, 20));
+	auto light = make_shared<diffuse_light>(Color3d(25, 25, 25));
 	auto yellow = make_shared<lambertian>(Color3d(.45, .45, .10));
 
 	objl::Loader loader;
@@ -54,7 +54,7 @@ int main() {
 		obj_model.add(t);
 	}
 	//由于标准化空间是从-1到1，跨度为2，所以正确的缩放参数是想要缩放比例的二分之一
-	obj_model.apply_transformation(140.0, 180.0, Vector3d(140.0 + 50.0, 140.0 + 0.0, 140.0 + 170.0));
+	obj_model.apply_transformation(140.0, 160.0, Vector3d(140.0 + 25.0, 140.0 + 0.0, 140.0 + 170.0));
 
 	shared_ptr<bvh_node> model = make_shared<bvh_node>(obj_model);
 

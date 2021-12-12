@@ -60,6 +60,7 @@ void hittable_list::apply_transformation(double scale, double degree, Vector3d t
 		0.0, 0.0, 0.0, 1.0;
 	matrix = translate_matrix * rotate_matrix * scale_matrix;
 	for (auto& item : objects) {
-		item->apply_transformation(matrix);
+		item->apply_vertex_transformation(matrix);
+		item->apply_normal_transformation(rotate_matrix);
 	}
 }

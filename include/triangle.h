@@ -36,10 +36,16 @@ public:
 		mat_ptr = mat;
 	}
 
-	virtual void apply_transformation(Eigen::Matrix4d& matrix) {
+	virtual void apply_vertex_transformation(Eigen::Matrix4d& matrix) {
 		v[0] = matrix * v[0];
 		v[1] = matrix * v[1];
 		v[2] = matrix * v[2];
+	}
+
+	virtual void apply_normal_transformation(Eigen::Matrix4d& matrix) {
+		n[0] = matrix * n[0];
+		n[1] = matrix * n[1];
+		n[2] = matrix * n[2];
 	}
 public:
 	Vector4d v[3];
