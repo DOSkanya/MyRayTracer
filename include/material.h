@@ -18,7 +18,7 @@ public:
 class lambertian : public material {
 public:
 	lambertian(Color3d color) : albedo(make_shared<solid_color>(color)) {}
-	lambertian(shared_ptr<solid_color> a) : albedo(a) {}
+	lambertian(shared_ptr<texture> a) : albedo(a) {}
 
 	virtual bool scatter(const ray& r_in, const hit_record& hrec, scatter_record& srec) const {
 		//srec.pdf_ptr = make_shared<uniform_pdf>(hrec.n);

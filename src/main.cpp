@@ -9,12 +9,13 @@
 #include "bvh_tree.h"
 #include "tile.h"
 #include "OBJ_Loader.h"
+#include "tgaimage.h"
 
 std::mutex change;
 
-const int screen_height = 200;
-const int screen_width = 200;
-const int samples_per_pixel = 100;
+const int screen_height = 800;
+const int screen_width = 800;
+const int samples_per_pixel = 500;
 
 Color3d* pixel_color;
 //Color3d ray_color(const ray& r, const bvh_node& world);
@@ -29,6 +30,8 @@ int main() {
 	auto white = make_shared<lambertian>(Color3d(.73, .73, .73));
 	auto light = make_shared<diffuse_light>(Color3d(25, 25, 25));
 	auto yellow = make_shared<lambertian>(Color3d(.45, .45, .10));
+	auto texture_image = make_shared<image_texture>("resource/african_head/african_head_diffuse.tga");
+	auto texture = make_shared<lambertian>(texture_image);
 
 	objl::Loader loader;
 	loader.LoadFile("resource/african_head/african_head.obj");
@@ -50,7 +53,7 @@ int main() {
 		t->set_vertex(v_1, v_2, v_3);
 		t->set_normal(n_1, n_2, n_3);
 		t->set_texcord(t_1, t_2, t_3);
-		t->mat_ptr = white;
+		t->mat_ptr = texture;
 		obj_model.add(t);
 	}
 	//由于标准化空间是从-1到1，跨度为2，所以正确的缩放参数是想要缩放比例的二分之一
